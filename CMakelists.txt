@@ -1,0 +1,29 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(Physics2D)
+
+file(GLOB_RECURSE SOURCES src/*.cpp)
+
+find_package(SDL2 REQUIRED PATHS E:/CLibs)
+
+list(APPEND INCLUDE_LIST ${SDL2_INCLUDE_DIRS})
+list(APPEND INCLUDE_LIST include)
+list(APPEND INCLUDE_LIST include/2dphysics)
+list(APPEND INCLUDE_LIST include/2dphysics/collisions)
+list(APPEND INCLUDE_LIST include/2dphysics/constraints)
+list(APPEND INCLUDE_LIST include/2dphysics/maths)
+list(APPEND INCLUDE_LIST include/2dphysics/objects)
+list(APPEND INCLUDE_LIST include/2dphysics/shapes)
+list(APPEND INCLUDE_LIST include/2dphysics/tools)
+list(APPEND INCLUDE_LIST include/renderer)
+
+
+list(APPEND LIB_LIST ${SDL2_LIBRARIES})
+
+file(COPY ${SDL2_BINDIR}/SDL2.dll DESTINATION /)  # copy dll 到 exe 同级目录
+
+include_directories(${INCLUDE_LIST})
+
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${LIB_LIST})
