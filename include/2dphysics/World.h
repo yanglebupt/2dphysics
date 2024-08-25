@@ -19,10 +19,11 @@ private:
   std::vector<float> torques;
   // constraints needed to solve
   std::vector<Constraint *> constraints;
-  int constraintSolveIterations = 5;
-  float penetrationConstraintBias = 0.2f;
 
 public:
+  int constraintSolveIterations = 5;
+  float penetrationConstraintBias = 0.2f;
+  float enablePenetrationConstraint = false;
   World(float gravity, Vector2 gravityDirection);
   World(float gravity);
   World();

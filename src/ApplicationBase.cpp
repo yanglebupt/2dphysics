@@ -10,6 +10,7 @@
 
 struct ApplicationBase : Scene
 {
+  float boxAngleMultiplier = 1.f;
   void Input() override
   {
     SDL_Event event;
@@ -44,7 +45,7 @@ struct ApplicationBase : Scene
         }
         else if (p <= 0.7)
         {
-          body = new RigidBody(BoxShape(40, 40), x, y, 1);
+          body = new RigidBody(BoxShape(40, 40), x, y, 1, Multiplier{boxAngleMultiplier});
           body->restitution = 0.3;
         }
         else

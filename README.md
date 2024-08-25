@@ -342,5 +342,23 @@ $$
 
 ![](./imgs/PenBoun.png)
 
-
 ### 解决不稳定（例如堆叠）
+
+其实已经发现了，目前的单一 `Contact` 做法， 当两个多边形进行碰撞响应的时候是及其不稳定的，原因在于，会出现多个碰撞点的情况，导致一边施加冲量，另一边没有施加冲量，从而左右晃动，例如下面的两种情况
+
+|案例一|案例二|
+|---|---|
+|![](./imgs/BoxCollisionEdge-1.png)|![](./imgs/BoxCollisionEdge-2.png)|
+
+#### Reference and Incident Edge
+
+首先，先定义下对于侵入方称为 `IncidentShape`，被侵入方称为 `ReferenceShape`，倾入方的点称为 `SupportPoint`（Contact 的 start 或者 end）。被倾入方的边称为 `ReferencEdge`（从那条边侵入的，法线为 Contact 的 normal），倾入方的边称为 `IncidentEdge`，从下图可以看到 `IncidentEdge` 可能是两条中的一条，那么取哪条呢？取和 `ReferencEdge` 夹角更小的那条边，代表是从 `IncidentEdge` 侵入 `ReferencEdge` 的
+
+![](./imgs/Reference-Incident-Edge.png)
+
+
+### 解决微小抖动问题
+
+目前为止，我们还没有解决碰撞响应结束后的微小抖动问题，这就需要让刚体 **sleeping**
+
+- Contact Caching

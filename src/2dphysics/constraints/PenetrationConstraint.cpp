@@ -1,5 +1,6 @@
 #include "PenetrationConstraint.h"
 #include <algorithm>
+#include <iostream>
 
 PenetrationConstraint::PenetrationConstraint(Contact contact, float biasBeta) : Constraint(contact.a, contact.b, biasBeta)
 {
@@ -20,7 +21,8 @@ MatrixMN PenetrationConstraint::GetJ(float dt)
 
   // when constraints satisfied (pb - pa).dot(n) >= 0
   float C = (pb - pa).dot(n);
-  // C = std::min(0.f, C + 0.01f); // when C >= -0.01, 马上就要离开，return C=0
+  // when C >= -??, 马上就要离开，return C = 0，防止细微的不停上下，造成的闪烁
+  C = std::min(0.f, C + biasBeta * 0.5f);
 
   MatrixMN J(2, 6);
 
@@ -31,6 +33,17 @@ MatrixMN PenetrationConstraint::GetJ(float dt)
   J[0][3] = n.x;
   J[0][4] = n.y;
   J[0][5] = rb.cross(n);
+
+  Vector2 v_rel = a->GetResultantVelocityFromV(ra) - b->GetResultantVelocityFromV(rb);
+  float restitution = std::max(a->restitution, b->restitution);
+
+  bias = (biasBeta / dt) * C;
+
+  // 防止细微的不停上下，造成的闪烁
+  if (C != 0.f)
+  {
+    bias += restitution * v_rel.dot(n);
+  }
 
   friction = std::max(a->friction, b->friction);
   if (friction > 0.f)
@@ -46,11 +59,6 @@ MatrixMN PenetrationConstraint::GetJ(float dt)
     J[1][5] = rb.cross(t);
   }
 
-  Vector2 v_rel = a->GetResultantVelocityFromV(ra) - b->GetResultantVelocityFromV(rb);
-
-  float restitution = std::max(a->restitution, b->restitution);
-  bias = (biasBeta / dt) * C + restitution * v_rel.dot(n);
-
   return J;
 };
 
@@ -62,19 +70,24 @@ void PenetrationConstraint::Solve(float dt)
   // 2. 计算 λ 冲量振幅
   VectorN λ = MatrixMN::SolveGaussSeidel(lhs, rhs);
 
-  // 缓存 λ
-  VectorN oldLambda = lambda;
-  lambda += λ;
-  lambda[0] = lambda[0] < 0.f ? 0.f : lambda[0];
-
-  // clamp tangent friction between [-uλ_n, uλ_n]
   if (friction > 0.f)
   {
-    float maxFriction = lambda[0] * friction;
-    lambda[1] = std::clamp(lambda[1], -maxFriction, maxFriction);
+    float maxFriction = friction * λ[0];
+    λ[1] = std::clamp(λ[1], -maxFriction, maxFriction);
   }
 
-  λ = lambda - oldLambda;
+  // 缓存 λ
+  lambda += λ;
+
+  // VectorN oldLambda = lambda;
+  // lambda += λ;
+  // lambda[0] = lambda[0] < 0.f ? 0.f : lambda[0];
+  // if (friction > 0.f)
+  // {
+  //   float maxFriction = friction * lambda[0];
+  //   lambda[1] = std::clamp(lambda[1], -maxFriction, maxFriction);
+  // }
+  // λ = lambda - oldLambda;
 
   // 3. 施加冲量
   ApplyImpulse(J.Transpose() * λ);

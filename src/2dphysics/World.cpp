@@ -76,25 +76,15 @@ void World::Update(float dt, std::function<void(const Contact &contact)> callbac
     body->IntegrateForce(dt);
   }
 
-  // 碰撞检测
   std::vector<PenetrationConstraint> penetrations; // 局部变量，自动释放
-  // for (size_t i = 0; i < bodies.size(); i++)
-  // {
-  //   for (size_t j = i + 1; j < bodies.size(); j++)
-  //   {
-  //     RigidBody *a = bodies[i];
-  //     RigidBody *b = bodies[j];
-  //     Contact contact;
-  //     if (CollisionDetection::IsColliding(a, b, contact))
-  //     {
-  //       a->isColliding = b->isColliding = true;
-  //       callback(contact);
-  //       // 局部变量，自动释放，不要 new
-  //       // 添加侵入约束
-  //       penetrations.push_back(PenetrationConstraint(contact, penetrationConstraintBias));
-  //     }
-  //   }
-  // }
+  if (enablePenetrationConstraint)
+  {
+    CheckCollision([callback, &penetrations, this](const Contact &contact)
+                   { 
+      callback(contact);
+      // 添加侵入约束，局部变量，自动释放，不要 new
+      penetrations.push_back(PenetrationConstraint(contact, penetrationConstraintBias)); });
+  }
 
   // 求解约束，施加冲量，再次更新速度
   for (auto &constraint : constraints)
@@ -133,7 +123,8 @@ void World::Update(float dt, std::function<void(const Contact &contact)> callbac
     body->IntegrateVelocity(dt);
   }
 
-  CheckCollision();
+  if (!enablePenetrationConstraint)
+    CheckCollision();
 };
 
 void World::CheckCollision(std::function<void(const Contact &contact)> callback)
