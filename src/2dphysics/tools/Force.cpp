@@ -6,7 +6,7 @@ Vector2 Force::GenerateGravityForce(const Particle &particle)
   return 1 / particle.invMass * GRAVITY * GRAVITYDIRECTION;
 }
 
-Vector2 Force::GenerateGravityForce(const Particle &particle, const Vector2 &gravityDirection, float gravity)
+Vector2 Force::GenerateGravityForce(const Particle &particle, float gravity, const Vector2 &gravityDirection)
 {
   return 1 / particle.invMass * gravity * gravityDirection;
 }

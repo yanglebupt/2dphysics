@@ -22,7 +22,8 @@ MatrixMN PenetrationConstraint::GetJ(float dt)
   // when constraints satisfied (pb - pa).dot(n) >= 0
   float C = (pb - pa).dot(n);
   // when C >= -??, 马上就要离开，return C = 0，防止细微的不停上下，造成的闪烁
-  C = std::min(0.f, C + biasBeta * 0.5f);
+  // C = std::min(0.f, C + biasBeta * 0.5f);
+  // C = std::min(0.f, C + 0.01f);
 
   MatrixMN J(2, 6);
 
@@ -34,16 +35,16 @@ MatrixMN PenetrationConstraint::GetJ(float dt)
   J[0][4] = n.y;
   J[0][5] = rb.cross(n);
 
+  restitution = std::max(a->restitution, b->restitution);
   Vector2 v_rel = a->GetResultantVelocityFromV(ra) - b->GetResultantVelocityFromV(rb);
-  float restitution = std::max(a->restitution, b->restitution);
 
-  bias = (biasBeta / dt) * C;
+  bias = (biasBeta / dt) * C + restitution * v_rel.dot(-n);
 
   // 防止细微的不停上下，造成的闪烁
-  if (C != 0.f)
-  {
-    bias += restitution * v_rel.dot(n);
-  }
+  // if (C != 0.f)
+  // {
+  //   bias += restitution * v_rel.dot(-n);
+  // }
 
   friction = std::max(a->friction, b->friction);
   if (friction > 0.f)

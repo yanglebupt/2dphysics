@@ -352,7 +352,7 @@ $$
 
 #### Reference and Incident Edge
 
-首先，先定义下对于侵入方称为 `IncidentShape`，被侵入方称为 `ReferenceShape`，倾入方的点称为 `SupportPoint`（Contact 的 start 或者 end）。被倾入方的边称为 `ReferencEdge`（从那条边侵入的，法线为 Contact 的 normal），倾入方的边称为 `IncidentEdge`，从下图可以看到 `IncidentEdge` 可能是两条中的一条，那么取哪条呢？取和 `ReferencEdge` 夹角更小的那条边，代表是从 `IncidentEdge` 侵入 `ReferencEdge` 的
+首先，先定义下对于侵入方称为 `IncidentShape`，被侵入方称为 `ReferenceShape`，倾入方的点称为 `SupportPoint`（Contact 的 start 或者 end）。被倾入方的边称为 `ReferencEdge`（从那条边侵入的，法线为 Contact 的 normal），倾入方的边称为 `IncidentEdge`，从下图可以看到 `IncidentEdge` 可能是两条中的一条，那么取哪条呢？<b><font color="red">取和 `ReferencEdge` 夹角更小的那条边，代表是从 `IncidentEdge` 侵入 `ReferencEdge` 的，但是这里不能通过边的夹角来判断，需要通过边法线的夹角来判断，因为边有可能平行，但法线有朝向，通过法线的朝向可以判断边是否侵入，也就是法线的点积是负，并且越小越好，并且这种法线判断也容易推广到 3D </font><b>
 
 ![](./imgs/Reference-Incident-Edge.png)
 

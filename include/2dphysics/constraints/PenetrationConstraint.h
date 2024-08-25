@@ -11,6 +11,7 @@ private:
   Vector2 normalInALocal;
   Vector2 endInALocal;
   float friction;
+  float restitution;
 
 public:
   PenetrationConstraint(Contact contact, float biasBeta = 0.3f);

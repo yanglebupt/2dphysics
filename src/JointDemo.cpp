@@ -15,6 +15,7 @@ struct JointDemo : ApplicationBase
     debug = false;
     running = Graphics::OpenWindow(title, x, y, width, height);
     world = new World();
+    world->enablePenetrationConstraint = false;
 
     // add bodies and joint constraints
     RigidBody *parentBody;

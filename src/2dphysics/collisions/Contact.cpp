@@ -2,7 +2,7 @@
 #include "Constants.h"
 #include <cmath>
 
-bool Contact::ResolvePenetration()
+bool Contact::ResolvePenetration() const
 {
   if (a->IsStatic() && b->IsStatic())
     return false;
@@ -21,7 +21,7 @@ bool Contact::ResolvePenetration()
   return true;
 };
 
-bool Contact::ResolveLinearCollision()
+bool Contact::ResolveLinearCollision() const
 {
   if (!ResolvePenetration())
     return false;
@@ -38,14 +38,14 @@ bool Contact::ResolveLinearCollision()
   return true;
 };
 
-Vector2 Contact::GetCollisionImpulse(const Vector2 &ra, const Vector2 &rb, const Vector2 &v_rel, const Vector2 &n, float e)
+Vector2 Contact::GetCollisionImpulse(const Vector2 &ra, const Vector2 &rb, const Vector2 &v_rel, const Vector2 &n, float e) const
 {
   float RaCroN = ra.cross(n);
   float RbCroN = rb.cross(n);
   float impulseMag = (1 + e) * v_rel.dot(n) / (a->invMass + b->invMass + RaCroN * RaCroN * a->invI + RbCroN * RbCroN * b->invI);
   return impulseMag * n;
 }
-bool Contact::ResolveCollision()
+bool Contact::ResolveCollision() const
 {
   if (!ResolvePenetration())
     return false;

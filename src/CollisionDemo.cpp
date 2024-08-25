@@ -13,6 +13,7 @@ struct CollisionDemo : ApplicationBase
     debug = false;
     running = Graphics::OpenWindow(title, x, y, width, height);
     world = new World();
+    world->enablePenetrationConstraint = false;
 
     RigidBody *bigBall = new RigidBody(BoxShape(150, 150), Graphics::center, 0);
     bigBall->rotation = -M_PI / 8;

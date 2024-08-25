@@ -33,7 +33,7 @@ struct Contact
    * Note we should use inverse mass to calculate
    * @return bool is resolved, if all static, will return false
    */
-  bool ResolvePenetration();
+  bool ResolvePenetration() const;
 
   /**
    * impulse change the velocity directly I=FΔt=mΔv
@@ -43,19 +43,19 @@ struct Contact
    *
    * **Note still we would not resolve angular velocity, we just resolve linear velocity**
    */
-  bool ResolveLinearCollision();
+  bool ResolveLinearCollision() const;
 
   /**
    * impulse change the velocity and anguler velocity directly
    * we will also add both normal and tangent impulse!
    * ** Note impulse will applied to velocity and angular velocity
    */
-  bool ResolveCollision();
+  bool ResolveCollision() const;
 
   /**
    * 计算沿着某个碰撞方向的冲量
    */
-  Vector2 GetCollisionImpulse(const Vector2 &ra, const Vector2 &rb, const Vector2 &v_rel, const Vector2 &n, float e);
+  Vector2 GetCollisionImpulse(const Vector2 &ra, const Vector2 &rb, const Vector2 &v_rel, const Vector2 &n, float e) const;
 };
 
 #endif

@@ -6,6 +6,7 @@
 #include "RigidBody.h"
 #include "Contact.h"
 #include "Constraint.h"
+#include "PenetrationConstraint.h"
 
 struct World
 {
@@ -37,6 +38,8 @@ public:
   // add torque to every rigidbody
   void AddTorque(float torque);
   void AddConstraint(Constraint *constraint);
+  void SolveConstraints(std::vector<Constraint *> constraints, float dt);
+  void SolveConstraints(std::vector<PenetrationConstraint> penetrations, float dt);
 
   void Update(float dt, std::function<void(const Contact &contact)> callback = [](const Contact &_contact) {});
 

@@ -4,6 +4,7 @@
 #include "Contact.h"
 #include "CollisionDetection.h"
 #include "PenetrationConstraint.h"
+#include <iostream>
 
 World::World(float gravity, Vector2 gravityDirection) : gravity(gravity), gravityDirection(gravityDirection) {};
 World::World(float gravity) : gravity(gravity), gravityDirection(GRAVITYDIRECTION) {};
@@ -59,7 +60,7 @@ void World::Update(float dt, std::function<void(const Contact &contact)> callbac
   // 添加力和扭矩
   for (auto &body : bodies)
   {
-    Vector2 wei = Force::GenerateGravityForce(*body);
+    Vector2 wei = Force::GenerateGravityForce(*body, gravity, gravityDirection);
     body->AddForce(wei);
 
     for (auto force : forces)
@@ -76,46 +77,8 @@ void World::Update(float dt, std::function<void(const Contact &contact)> callbac
     body->IntegrateForce(dt);
   }
 
-  std::vector<PenetrationConstraint> penetrations; // 局部变量，自动释放
-  if (enablePenetrationConstraint)
-  {
-    CheckCollision([callback, &penetrations, this](const Contact &contact)
-                   { 
-      callback(contact);
-      // 添加侵入约束，局部变量，自动释放，不要 new
-      penetrations.push_back(PenetrationConstraint(contact, penetrationConstraintBias)); });
-  }
-
   // 求解约束，施加冲量，再次更新速度
-  for (auto &constraint : constraints)
-  {
-    constraint->PreSolve(dt);
-  }
-  for (auto &constraint : penetrations)
-  {
-    constraint.PreSolve(dt);
-  }
-
-  for (size_t i = 0; i < constraintSolveIterations; i++)
-  {
-    for (auto &constraint : constraints)
-    {
-      constraint->Solve(dt);
-    }
-    for (auto &constraint : penetrations)
-    {
-      constraint.Solve(dt);
-    }
-  }
-
-  for (auto &constraint : constraints)
-  {
-    constraint->PostSolve(dt);
-  }
-  for (auto &constraint : penetrations)
-  {
-    constraint.PostSolve(dt);
-  }
+  SolveConstraints(constraints, dt);
 
   // 最后更新位置
   for (auto &body : bodies)
@@ -123,8 +86,64 @@ void World::Update(float dt, std::function<void(const Contact &contact)> callbac
     body->IntegrateVelocity(dt);
   }
 
-  if (!enablePenetrationConstraint)
-    CheckCollision();
+  if (enablePenetrationConstraint)
+  {
+    std::cout << "Penetration" << std::endl;
+    std::vector<PenetrationConstraint> penetrations; // 局部变量，自动释放
+
+    CheckCollision([callback, &penetrations, this](const Contact &contact)
+                   { 
+      callback(contact);
+      contact.ResolvePenetration();
+      // 添加侵入约束，局部变量，自动释放，不要 new
+      penetrations.push_back(PenetrationConstraint(contact, penetrationConstraintBias)); });
+
+    SolveConstraints(penetrations, dt);
+  }
+  else
+  {
+    std::cout << "Resolve" << std::endl;
+    CheckCollision([callback](const Contact &contact)
+                   { callback(contact); contact.ResolveCollision(); });
+  }
+};
+
+void World::SolveConstraints(std::vector<PenetrationConstraint> penetrations, float dt)
+{
+  for (auto &constraint : penetrations)
+  {
+    constraint.PreSolve(dt);
+  }
+  for (size_t i = 0; i < constraintSolveIterations; i++)
+  {
+    for (auto &constraint : penetrations)
+    {
+      constraint.Solve(dt);
+    }
+  }
+  for (auto &constraint : penetrations)
+  {
+    constraint.PostSolve(dt);
+  }
+};
+
+void World::SolveConstraints(std::vector<Constraint *> constraints, float dt)
+{
+  for (auto &constraint : constraints)
+  {
+    constraint->PreSolve(dt);
+  }
+  for (size_t i = 0; i < constraintSolveIterations; i++)
+  {
+    for (auto &constraint : constraints)
+    {
+      constraint->Solve(dt);
+    }
+  }
+  for (auto &constraint : constraints)
+  {
+    constraint->PostSolve(dt);
+  }
 };
 
 void World::CheckCollision(std::function<void(const Contact &contact)> callback)
@@ -138,7 +157,6 @@ void World::CheckCollision(std::function<void(const Contact &contact)> callback)
       Contact contact;
       if (CollisionDetection::IsColliding(a, b, contact))
       {
-        contact.ResolveCollision();
         a->isColliding = b->isColliding = true;
         callback(contact);
       }

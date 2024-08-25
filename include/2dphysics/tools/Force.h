@@ -12,7 +12,7 @@ struct Force
    * Note in this function we would not apply force, you must manually apply the generated force using "AddForce"
    */
   static Vector2 GenerateGravityForce(const Particle &particle);
-  static Vector2 GenerateGravityForce(const Particle &particle, const Vector2 &gravityDirection, float gravity);
+  static Vector2 GenerateGravityForce(const Particle &particle, float gravity, const Vector2 &gravityDirection);
 
   /**
    * Generate resistance drag force
