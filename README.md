@@ -334,9 +334,16 @@ $$
 
 ![](./imgs/PenTangentSolve.png)
 
-同时需要现在切向冲量振幅
+同时现在需要切向冲量振幅
 
 ![](./imgs/PenFriction.png)
+
+实验中发现，对于法向的冲量求解，最好加上 bias，而对于切向冲量的求解，不要加上 bias，但需要乘以摩擦系数 $\mu$
+
+$$
+(J_nM^{-1}J_n^T)\lambda_{n} = -J_{n}V_1-b \\
+(J_tM^{-1}J_t^T)\lambda_{t} = -\mu J_{t}V_1
+$$
 
 注意 Penetration Constraints 并没有考虑 bounciness（弹性），只是将他们分开，因此还需要进行一些修正
 
