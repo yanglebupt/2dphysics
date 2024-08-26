@@ -35,15 +35,15 @@ MatrixMN PenetrationConstraint::GetJ(float dt)
   J[0][4] = n.y;
   J[0][5] = rb.cross(n);
 
-  restitution = std::max(a->restitution, b->restitution);
+  float restitution = std::max(a->restitution, b->restitution);
   Vector2 v_rel = a->GetResultantVelocityFromV(ra) - b->GetResultantVelocityFromV(rb);
 
-  bias = (biasBeta / dt) * C + restitution * v_rel.dot(-n);
+  bias = (biasBeta / dt) * C - restitution * v_rel.dot(n);
 
   // 防止细微的不停上下，造成的闪烁
   // if (C != 0.f)
   // {
-  //   bias += restitution * v_rel.dot(-n);
+  //   bias -= restitution * v_rel.dot(n);
   // }
 
   friction = std::max(a->friction, b->friction);
@@ -71,24 +71,31 @@ void PenetrationConstraint::Solve(float dt)
   // 2. 计算 λ 冲量振幅
   VectorN λ = MatrixMN::SolveGaussSeidel(lhs, rhs);
 
-  if (friction > 0.f)
-  {
-    float maxFriction = friction * λ[0];
-    λ[1] = std::clamp(λ[1], -maxFriction, maxFriction);
-  }
+  // if (friction > 0.f)
+  // {
+  //   float maxFriction = friction * λ[0];
+  //   λ[1] = std::clamp(λ[1], -maxFriction, maxFriction);
+  // }
 
-  // 缓存 λ
-  lambda += λ;
-
-  // VectorN oldLambda = lambda;
+  // // 缓存 λ
   // lambda += λ;
-  // lambda[0] = lambda[0] < 0.f ? 0.f : lambda[0];
+
   // if (friction > 0.f)
   // {
   //   float maxFriction = friction * lambda[0];
   //   lambda[1] = std::clamp(lambda[1], -maxFriction, maxFriction);
   // }
-  // λ = lambda - oldLambda;
+
+  VectorN oldLambda = lambda;
+  lambda += λ;
+  lambda[0] = lambda[0] < 0.f ? 0.f : lambda[0]; // clamp lambda[0] 防止负号改变方向
+  if (friction > 0.f)
+  {
+    float maxFriction = friction * lambda[0];
+    lambda[1] = std::clamp(lambda[1], -maxFriction, maxFriction); // clamp lambda[1]
+  }
+
+  λ = lambda - oldLambda;
 
   // 3. 施加冲量
   ApplyImpulse(J.Transpose() * λ);

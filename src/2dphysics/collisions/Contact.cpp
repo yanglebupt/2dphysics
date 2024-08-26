@@ -23,7 +23,7 @@ bool Contact::ResolvePenetration() const
 
 bool Contact::ResolveLinearCollision() const
 {
-  if (!ResolvePenetration())
+  if (a->IsStatic() && b->IsStatic())
     return false;
 
   float e = std::max(a->restitution, b->restitution);
@@ -47,7 +47,7 @@ Vector2 Contact::GetCollisionImpulse(const Vector2 &ra, const Vector2 &rb, const
 }
 bool Contact::ResolveCollision() const
 {
-  if (!ResolvePenetration())
+  if (a->IsStatic() && b->IsStatic())
     return false;
 
   float e = std::max(a->restitution, b->restitution);

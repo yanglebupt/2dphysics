@@ -88,21 +88,18 @@ void World::Update(float dt, std::function<void(const Contact &contact)> callbac
 
   if (enablePenetrationConstraint)
   {
-    std::cout << "Penetration" << std::endl;
     std::vector<PenetrationConstraint> penetrations; // 局部变量，自动释放
 
     CheckCollision([callback, &penetrations, this](const Contact &contact)
-                   { 
-      callback(contact);
-      contact.ResolvePenetration();
-      // 添加侵入约束，局部变量，自动释放，不要 new
-      penetrations.push_back(PenetrationConstraint(contact, penetrationConstraintBias)); });
+                   {
+                     callback(contact);
+                     // 添加侵入约束，局部变量，自动释放，不要 new
+                     penetrations.push_back(PenetrationConstraint(contact, penetrationConstraintBias)); });
 
     SolveConstraints(penetrations, dt);
   }
   else
   {
-    std::cout << "Resolve" << std::endl;
     CheckCollision([callback](const Contact &contact)
                    { callback(contact); contact.ResolveCollision(); });
   }
@@ -154,11 +151,21 @@ void World::CheckCollision(std::function<void(const Contact &contact)> callback)
     {
       RigidBody *a = bodies[i];
       RigidBody *b = bodies[j];
-      Contact contact;
-      if (CollisionDetection::IsColliding(a, b, contact))
+      // multiple contacts
+      std::vector<Contact> contacts;
+      if (CollisionDetection::IsColliding(a, b, contacts))
       {
         a->isColliding = b->isColliding = true;
-        callback(contact);
+
+        std::sort(contacts.begin(), contacts.end(), [](const Contact &a, const Contact &b)
+                  { return a.depth > b.depth; });
+        for (size_t k = 0, ks = contacts.size(); k < ks; k++)
+        {
+          Contact contact = contacts[k];
+          if (k == 0)
+            contact.ResolvePenetration();
+          callback(contact);
+        }
       }
     }
   }

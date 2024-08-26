@@ -37,11 +37,12 @@ struct PolygonShape : Shape
    * 否则，全部侵入长度都小于0，则取最大的，说明是靠着这条边侵入的，（侵入的绝对值最小），也就给出了侵入法线
    *
    * @param other the other polygon shape
-   * @param normal 和倾入边垂直的侵入法线
-   * @param point other 上侵入到自身 (this) 内部的点
+   * @param referenceEdgeIndex 被侵入边的起始索引，可以通过 GetEdge 获取具体的边
+   * @param incidentEdgeIndex other 上侵入到 this polygon shape 的边的起始索引，可以通过 GetEdge 获取具体的边
+   * @param supportPoint other 上侵入到 this polygon shape 内部的点
    * @return {float} 侵入长度，大于0，则代表没有碰撞，小于等于0，则代表碰撞
    **/
-  float FindClosestPenetration(const PolygonShape &other, Vector2 &normal, Vector2 &point) const;
+  float FindClosestPenetration(const PolygonShape &other, int &referenceEdgeIndex, int &incidentEdgeIndex, Vector2 &supportPoint) const;
 
   /**
    * 返回顶点对应的边向量

@@ -44,29 +44,55 @@ void PolygonShape::UpdateVertices(float angle, const Vector2 &position)
   }
 };
 
-float PolygonShape::FindClosestPenetration(const PolygonShape &other, Vector2 &normal, Vector2 &point) const
+float PolygonShape::FindClosestPenetration(const PolygonShape &other, int &referenceEdgeIndex, int &incidentEdgeIndex, Vector2 &supportPoint) const
 {
   float closestDepth = std::numeric_limits<float>::lowest(); // lowest() return -infinity min return nearly zero
-  for (size_t i = 0, n = worldVertices.size(); i < n; i++)
+  int possibleIncidentEdgeIndex;
+  int n = worldVertices.size(), m = other.worldVertices.size();
+  for (size_t i = 0; i < n; i++)
   {
     Vector2 edgeNormal = GetEdgeNormal(i);
     Vector2 va = worldVertices[i];
     Vector2 closestPoint;
+    int p_incidentEdgeIndex;
     float minProjection = std::numeric_limits<float>::max();
-    for (auto vb : other.worldVertices)
+    for (size_t j = 0; j < m; j++)
     {
+      Vector2 vb = other.worldVertices[j];
       float p = (vb - va).dot(edgeNormal);
       if (p < minProjection)
       {
         minProjection = p;
         closestPoint = vb;
+        p_incidentEdgeIndex = j;
       }
     }
     if (minProjection > closestDepth)
     {
       closestDepth = minProjection;
-      normal = edgeNormal;
-      point = closestPoint;
+      referenceEdgeIndex = i;
+      supportPoint = closestPoint;
+      possibleIncidentEdgeIndex = p_incidentEdgeIndex;
+    }
+  }
+
+  /**
+   * 决定 incidentEdgeIndex
+   * - possibleIncidentEdgeIndex 为 incidentEdge 的起点，则 incidentEdgeIndex = possibleIncidentEdgeIndex
+   * - possibleIncidentEdgeIndex 为 incidentEdge 的终点，则 incidentEdgeIndex = possibleIncidentEdgeIndex - 1
+   **/
+
+  Vector2 referenceEdgeNormal = GetEdgeNormal(referenceEdgeIndex);
+  float minD = std::numeric_limits<float>::max();
+  for (size_t i = 0; i < 2; i++)
+  {
+    int p_incidentEdge = (m + possibleIncidentEdgeIndex - i) % m;
+    Vector2 incidentEdgeNormal = other.GetEdgeNormal(p_incidentEdge);
+    float d = incidentEdgeNormal.dot(referenceEdgeNormal);
+    if (d < minD)
+    {
+      minD = d;
+      incidentEdgeIndex = p_incidentEdge;
     }
   }
 
@@ -75,7 +101,7 @@ float PolygonShape::FindClosestPenetration(const PolygonShape &other, Vector2 &n
 
 Vector2 PolygonShape::GetEdge(int index) const
 {
-  return worldVertices[(index + 1) % worldVertices.size()] - worldVertices[index];
+  return worldVertices[(index + 1) % worldVertices.size()] - worldVertices[index % worldVertices.size()];
 };
 
 Vector2 PolygonShape::GetEdgeNormal(int index) const

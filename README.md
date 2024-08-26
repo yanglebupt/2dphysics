@@ -356,6 +356,10 @@ $$
 
 ![](./imgs/Reference-Incident-Edge.png)
 
+找到 `ReferenceEdge` 和 `IncidentEdge` 后，用 `ReferenceEdge` 两侧的边对 `IncidentEdge` 进行裁剪，得到多个 `SupportPoint`，然后只保留侵入的 `SupportPoint`
+
+![](./imgs/ClipIncident.png)
+
 
 ### 解决微小抖动问题
 
