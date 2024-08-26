@@ -1,6 +1,5 @@
 #include "PenetrationConstraint.h"
 #include <algorithm>
-#include <iostream>
 
 PenetrationConstraint::PenetrationConstraint(Contact contact, float biasBeta) : Constraint(contact.a, contact.b, biasBeta)
 {
@@ -68,23 +67,11 @@ void PenetrationConstraint::Solve(float dt)
   VectorN rhs = J * GetVelocityVector() * -1.f;
   rhs[0] -= bias;
 
+  if (friction > 0.f)
+    rhs[1] *= friction; // fixed friction 不停翘起来的 bug
+
   // 2. 计算 λ 冲量振幅
   VectorN λ = MatrixMN::SolveGaussSeidel(lhs, rhs);
-
-  // if (friction > 0.f)
-  // {
-  //   float maxFriction = friction * λ[0];
-  //   λ[1] = std::clamp(λ[1], -maxFriction, maxFriction);
-  // }
-
-  // // 缓存 λ
-  // lambda += λ;
-
-  // if (friction > 0.f)
-  // {
-  //   float maxFriction = friction * lambda[0];
-  //   lambda[1] = std::clamp(lambda[1], -maxFriction, maxFriction);
-  // }
 
   VectorN oldLambda = lambda;
   lambda += λ;
@@ -94,7 +81,6 @@ void PenetrationConstraint::Solve(float dt)
     float maxFriction = friction * lambda[0];
     lambda[1] = std::clamp(lambda[1], -maxFriction, maxFriction); // clamp lambda[1]
   }
-
   λ = lambda - oldLambda;
 
   // 3. 施加冲量
