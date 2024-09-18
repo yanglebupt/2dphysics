@@ -96,7 +96,7 @@ for i in range(substep):
 
 <b><font color="red">约束运动非常重要，后面软体模拟、Position Based Dynamics 也会用到</font></b>
 
-一个约束可以用一个约束函数 $C$ 来表示，$C$ 输入是一些物体的状态，例如位置，速度，质量等等，输出一个标量
+一个约束可以用一个约束函数 $C$ 来表示， $C$ 输入是一些物体的状态，例如位置，速度，质量等等，输出一个标量
 
 $$
 C({x_1,v_1,m_1,...},{x_2,v_2,m_2,...},...{x_n,v_n,m_n,...}) \in R
@@ -114,9 +114,11 @@ $$
 当然，整个约束可以定义为
 
 $$
-when \;\; f_{c}(\vec{x})≻_{c}0, \; it \;\; satisfied
+\displaylines{
+when \\;\\; f_{c}(\vec{x})≻_{c}0 \\; it \\;\\; satisfied
 \\
-solve \;\; \vec{x}
+solve \\;\\; \vec{x}
+}
 $$
 
 其中 $≻$ 代表了 equality constraints 和 inequality constraints
@@ -128,15 +130,19 @@ $$
 假设我们有一个物体 A，其约束在运动过程中，如果处在某个位置 P，则称约束满足。那么一般情况下，我们都不会直接去改变物体 A 的位置，让其处在位置 P，而是通过求解速度，让物体 A smooth 过渡到位置 P，因此约束和速度解如下
 
 $$
+\displaylines{
 C(A,P)=|A-P|=0 \\
 v+\frac{\beta}{dt}C=0
+}
 $$
 
 当然这里求解出来的 v 是最终目标速度，你也可以用加速度来加速到目标速度，例如
 
 $$
-v = v.move\_towards(-\frac{\beta}{dt}C, \; a*dt) \\
-v \; *= damping
+\displaylines{
+v = v.move\\_towards(-\frac{\beta}{dt}C, \\; a*dt) \\
+v \\; *= damping
+}
 $$
 
 ## 约束运动的冲量解
@@ -145,30 +151,33 @@ $$
 
 ![](./imgs/ImpulseMatrix.png)
 
-我们的目标是通过约束 $C$，求出要施加的冲量 $j$。那我们可以假设约束是刚体位置和转动 $P$ 的函数，<b><font color="red">注意，刚体的位置和转动是一致的，其对时间的一阶导分别是速度和角速度，因此可以一起放在 $P$ 向量进行统一分析</font></b>。对于 equality constraints 约束函数，当满足约束时，$C=0$，那么其对时间的一阶导也等于0
+我们的目标是通过约束 $C$，求出要施加的冲量 $j$。那我们可以假设约束是刚体位置和转动 $P$ 的函数，<b><font color="red">注意，刚体的位置和转动是一致的，其对时间的一阶导分别是速度和角速度，因此可以一起放在 P 向量进行统一分析</font></b>。对于 equality constraints 约束函数，当满足约束时 $C=0$，那么其对时间的一阶导也等于0
 
 $$
 \dot{C} = \frac{\partial{C}}{\partial{P}}\frac{\partial{P}}{\partial{t}}=JV=0
 $$
 
-<b><font color="red">其中 J 是 Jacobian matrix（行向量）（梯度）后面我们会针对不同的约束求解这个矩阵</font></b>，$V$ 就是速度（线性速度和角速度共同组成的向量）
+<b><font color="red">其中 J 是 Jacobian matrix（行向量）（梯度）后面我们会针对不同的约束求解这个矩阵</font></b>， $V$ 就是速度（线性速度和角速度共同组成的向量）
 
 另外，在实际中我们会添加一个偏置项 $b$ （可控常数参数），得到 $JV+b=0$，这便是一般的速度约束解方程。
 
 下面我们开始求解满足约束需要的冲量，我们有
 
 $$
+\displaylines{
 M\Delta{V}=j \\
 M(V_2-V_1)=L\lambda
+}
 $$
 
-其中矩阵 $M$ 就是上图的质量对角线矩阵，$V_1$是刚体当前速度，不满足约束，$V_2$是满足约束求解得到的速度，也就是 $JV_2+b=0$，$j$ 是我们要求解的要施加的冲量，$L$ 是冲量方向，$\lambda$ 是冲量振幅。
+其中矩阵 $M$ 就是上图的质量对角线矩阵， $V_1$是刚体当前速度，不满足约束， $V_2$是满足约束求解得到的速度，也就是 $JV_2+b=0$， $j$ 是我们要求解的要施加的冲量， $L$ 是冲量方向， $\lambda$ 是冲量振幅。
 
 并且需要注意 $J=\frac{\partial{C}}{\partial{P}}$ 和冲量 $j$ 的关系，<b><font color="red">当我们沿着约束对于位置的梯度方向施加冲量，此时才能最优最快的使位置回到满足约束的地方，因此冲量的方向 L 可以设置为该梯度，即 L=J</font></b>，这点十分重要
 
 下面，只需要求解冲量的振幅 $\lambda$ 即可
 
 $$
+\displaylines{
 L=J^T \\
 V_2 = V_1+M^{-1}L\lambda \\
 JV_2+b=0 \\
@@ -176,6 +185,7 @@ JV_2+b=0 \\
 J(V_1+M^{-1}J^T\lambda)+b=0 \\
 \Rightarrow
 (JM^{-1}J^T)\lambda = -(JV_1+b)
+}
 $$
 
 考虑 $\lambda$ 也是一个向量，那么整个求解最终就回到了线性方程组的 $Ax=b$ 求解，这里我们采用迭代的数值方式 **Gauss-Seidel** 求解。当然这里是标量，直接除就行
@@ -241,7 +251,6 @@ void World::Update(float dt)
 };
 ```
 
-
 解决办法一：可以通过一次 Update 中多次迭代约束求解，来得到全局解，但这大大降低了 FPS 是不可取的，下面介绍两种技巧，可以大大减少迭代次数
 
 #### Warm Starting
@@ -285,7 +294,7 @@ void Constraint::Solve(float dt)
 };
 ```
 
-在 `Update` 中先进行 `PreSolve >> N Solve Iterative >> PostSolve`，`N` 可以很少，例如 `3/5` 次
+在 `Update` 中先进行 `PreSolve >> N Solve Iterative >> PostSolve`，`N` 可以很少，例如 `3-5` 次
 
 ```c++
  // 求解约束，施加冲量，再次更新速度
@@ -338,7 +347,7 @@ $$
 
 ![](./imgs/PenFriction.png)
 
-注意 Penetration Constraints 并没有考虑 bounciness（弹性），只是将他们分开，因此还需要进行一些修正
+注意 Penetration Constraints 并没有考虑 bounciness（弹性），只是将他们分开，因此还需要对偏置进行一些修正
 
 ![](./imgs/PenBoun.png)
 
