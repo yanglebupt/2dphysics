@@ -153,7 +153,7 @@ $$
 
 ![](./imgs/ImpulseMatrix.png)
 
-我们的目标是通过约束 $C$，求出要施加的冲量 $j$。那我们可以假设约束是刚体位置和转动 $P$ 的函数， **注意，刚体的位置和转动是一致的，其对时间的一阶导分别是速度和角速度，因此可以一起放在** ${P} **向量进行统一分析**。对于 equality constraints 约束函数，当满足约束时 $C=0$，那么其对时间的一阶导也等于0
+我们的目标是通过约束 $C$，求出要施加的冲量 $j$。那我们可以假设约束是刚体位置和转动 $P$ 的函数， <b><font color="red">注意，刚体的位置和转动是一致的，其对时间的一阶导分别是速度和角速度，因此可以一起放在 P 向量进行统一分析</font></b>。对于 equality constraints 约束函数，当满足约束时 $C=0$，那么其对时间的一阶导也等于0
 
 $$
 \dot{C} = \frac{\partial{C}}{\partial{P}}\frac{\partial{P}}{\partial{t}}=JV=0
@@ -297,7 +297,7 @@ void Constraint::Solve(float dt)
 };
 ```
 
-在 `Update` 中先进行 `PreSolve >> N Solve Iterative >> PostSolve`，`N` 可以很少，例如 `3/5` 次
+在 `Update` 中先进行 `PreSolve >> N Solve Iterative >> PostSolve`，`N` 可以很少，例如 `3-5` 次
 
 ```c++
  // 求解约束，施加冲量，再次更新速度
@@ -359,7 +359,7 @@ $$
 }
 $$
 
-注意 Penetration Constraints 并没有考虑 bounciness（弹性），只是将他们分开，因此还需要进行一些修正
+注意 Penetration Constraints 并没有考虑 bounciness（弹性），只是将他们分开，因此还需要对偏置进行一些修正
 
 ![](./imgs/PenBoun.png)
 
